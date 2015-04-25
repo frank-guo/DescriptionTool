@@ -13,13 +13,17 @@ namespace DescriptionTool
     {
         private IEnumerable<string> filesToExtract;
         private XmlDocument xmlDoc;
+        private Logger logger;
+        private int totalNumOfFile;
         public  StringBuilder result{get;set;}
 
-        public DescpExtractor(IEnumerable<string> files)
+        public DescpExtractor(IEnumerable<string> files, Logger logger, int totalNumOfFile)
         {
             result = new StringBuilder();
             filesToExtract = files;
             xmlDoc = new XmlDocument();
+            this.logger = logger;
+            this.totalNumOfFile = totalNumOfFile;
         }
 
         public void Extract()
@@ -28,12 +32,32 @@ namespace DescriptionTool
             try{
                 result.AppendLine("Source File Path,Output File Path,File Name,Topic Class,Meta Description");
 
+                int counter = 1;
                 foreach (var file in filesToExtract)
                 {
-                    //ToDo: launch an event to display the file number and succeed/fail and file counter, etc.
-                    //ToDo: Pop up a dialog to select Continue or Abort when fail to load file
+                    //ToDo: Use a background worker thread to do extraction,
+                    //ToDo: and fire an event to display the file number and succeed/fail and file counter, etc in console.
 
-                    xmlDoc.Load(file);
+                    Console.Write("{0}/{1} Extracting description in {2} ", counter, totalNumOfFile, file);
+                    try
+                    {
+                        xmlDoc.Load(file);
+                    }
+                    catch (Exception e)
+                    {
+                        try
+                        {
+                            string loginfo = string.Format("Extracting {0} failed \n {1}", file, e.Message);
+                            logger.writeLog(loginfo);
+                            Console.WriteLine("failed");
+                        }
+                        catch(Exception logEx)
+                        {
+                            Console.WriteLine("failed");
+                            Console.WriteLine(e.Message + logEx.Message);
+                        }
+                        continue;
+                    }
 
                     //Check if it contains meta tag 
                     bool isContainDesc = false;
@@ -54,6 +78,7 @@ namespace DescriptionTool
 
                     if (isContainDesc)
                     {
+                        Console.WriteLine("succeeded");
                         continue;
                     }
 
@@ -68,6 +93,7 @@ namespace DescriptionTool
 
                     if (!isAnyFiveValues)
                     {
+                        Console.WriteLine("succeeded");
                         continue;
                     }
 
@@ -98,16 +124,19 @@ namespace DescriptionTool
 
                     if (metaDescp == "\"\"")
                     {
+                        Console.WriteLine("succeeded");
                         continue;
                     }
 
                     var line = filePath + "," + output + "," + fileName + "," + topic + "," + metaDescp;
 
-                    //ToDo: Check the capacity of result is big enough
+                    //ToDo: Check the capacity of result is big enough and re-consider where to write "succeeded"
                     result.AppendLine(line);
-
+                    Console.WriteLine("succeeded");
+                    counter++;
                 }
 
+                Console.WriteLine("Type any key to exit");
                 Console.ReadKey();
             }
             catch (Exception e)

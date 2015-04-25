@@ -31,7 +31,8 @@ namespace DescriptionTool
                 Console.WriteLine("Totally {0} .htm files found.", files.Count().ToString());
                 Console.ReadKey();
 
-                DescpExtractor extractor = new DescpExtractor(files);
+                Logger logger = new Logger(Path.GetDirectoryName(outputFile));
+                DescpExtractor extractor = new DescpExtractor(files, logger, files.Count());
                 extractor.Extract();
 
                 if (File.Exists(outputFile))
@@ -39,10 +40,9 @@ namespace DescriptionTool
                     File.Delete(outputFile);
                 }
 
-
-                //ToDo:Pop up a dialog to retry
                 save:
-                try{
+                try
+                {
                     File.WriteAllText(outputFile, extractor.result.ToString());
                 }
                 catch(Exception e)
@@ -66,109 +66,6 @@ namespace DescriptionTool
                         }
                     }
                 }
-
-
-                /*
-                XmlDocument xmlDoc = new XmlDocument();
-
-                //Prepare the output file
-                var result = @"C:\Users\LGuo\Desktop\TestFolderForDescTool\result.csv";
-
-                if (File.Exists(result))
-                {
-                    File.Delete(result);
-                }
-
-                using (StreamWriter file = new StreamWriter(result))
-                {
-                    file.WriteLine("Source File Path,Output File Path,File Name,Topic Class,Meta Description");
-                }
-
-
-                foreach (var f in files)
-                {
-                    Console.WriteLine("{0}", f);
-
-                    xmlDoc.Load(f);
-
-                    //Check if it contains meta tag 
-                    bool isContainDesc = false;
-
-                    XmlNodeList nodes = xmlDoc.DocumentElement.GetElementsByTagName("meta");
-                    foreach (XmlNode node in nodes)
-                    {
-                        if (node.Attributes["name"] != null && node.Attributes["content"] != null)
-                        {
-
-                            if (node.Attributes["name"].Value == "description")
-                            {
-                                isContainDesc = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (isContainDesc)
-                    {
-                        continue;
-                    }
-
-                    //Check if html element has any of the following class values
-                    bool isConcept = xmlDoc.DocumentElement.GetAttribute("class") == "concept";
-                    bool isMinitoc = xmlDoc.DocumentElement.GetAttribute("class") == "minitoc";
-                    bool isReference = xmlDoc.DocumentElement.GetAttribute("class") == "reference";
-                    bool isScreenguide = xmlDoc.DocumentElement.GetAttribute("class") == "screenguide";
-                    bool isTask = xmlDoc.DocumentElement.GetAttribute("class") == "task";
-                    bool isAnyFiveValues = isConcept || isMinitoc ||
-                                            isReference || isScreenguide || isTask;
-
-                    if (!isAnyFiveValues)
-                    {
-                        continue;
-                    }
-
-                    //Extract the required information
-                    var topic = xmlDoc.DocumentElement.GetAttribute("class");
-                    string fileFullName = f;
-                    string filePath = "";
-                    string fileName = "";
-
-                    getFilePathAndName(fileFullName, ref filePath, ref fileName);
-
-                    string output = transform(filePath);
-
-                    string metaDescp = "";
-
-                    if (topic == "concept" || topic == "minitoc" || topic == "reference" || topic == "task")
-                    {
-                        XmlNode firstPargrah = getFirstParagraphAfterH1(xmlDoc);
-                        metaDescp = extractDescp(firstPargrah);
-
-                    }
-
-                    if (topic == "screenguide")
-                    {
-                        XmlNode firstPargrah = getFirstParagAfterOverViewH2(xmlDoc);
-                        metaDescp = extractDescp(firstPargrah);
-                    }
-
-                    if (metaDescp == "\"\"")
-                    {
-                        continue;
-                    }
-
-                    var line = filePath + "," + output + "," + fileName + "," + topic + "," + metaDescp;
-
-
-                    using (StreamWriter file = new StreamWriter(result, true))
-                    {
-                        file.WriteLine(line);
-                    }
-
-                }
-
-                Console.ReadKey();
-                 */
             }
             catch (Exception e)
             {

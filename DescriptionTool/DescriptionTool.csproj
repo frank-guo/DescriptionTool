@@ -46,6 +46,7 @@
     <Compile Include="ExtractInputProcessor.cs" />
     <Compile Include="IInputProcessor.cs" />
     <Compile Include="InputProcessorBase.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

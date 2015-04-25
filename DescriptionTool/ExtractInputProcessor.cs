@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DescriptionTool
 {
-    class ExtractInputProcessor: InputProcessorBase
+    class ExtractInputProcessor : InputProcessorBase
     {
         public override void receiveInputPath()
         {
@@ -35,13 +35,13 @@ namespace DescriptionTool
             bool isOutputCreated = false;
             while (!isOutputCreated)
             {
-                Console.Write("Please specify the output folder(if same as the input, type in 'Enter'): \n");
+                Console.Write("Please specify the output file(if same as the input, type in 'Enter'): \n");
 
                 outputPath = Console.ReadLine();
 
                 if (outputPath == "")
                 {
-                    outputPath = inputPath;
+                    continue;
                 }
 
                 isOutputCreated = true;
@@ -56,21 +56,6 @@ namespace DescriptionTool
                     Console.Write(e.Message + "\n");
                     isOutputCreated = false;
                 }
-            }
-        }
-
-        private static bool isValidPath(string filePath)
-        {
-            try
-            {
-                File.Create(filePath);
-                File.Delete(filePath);
-                return true;
-            }
-            catch (Exception e)
-            {
-                Console.Write(e.Message + "\n");
-                return false;
             }
         }
     }
