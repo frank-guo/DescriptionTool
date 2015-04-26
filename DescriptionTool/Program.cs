@@ -27,14 +27,18 @@ namespace DescriptionTool
                 outputFile = inputProcessor.OutputPath;
 
                 var files = Directory.EnumerateFiles(inputFolder, "*.htm", SearchOption.AllDirectories);
+                FileWriter outputWriter = new FileWriter(outputFile);
 
                 Console.WriteLine("Totally {0} .htm files found.", files.Count().ToString());
                 Console.ReadKey();
 
                 Logger logger = new Logger(Path.GetDirectoryName(outputFile));
-                DescpExtractor extractor = new DescpExtractor(files, logger, files.Count());
+                DescpExtractor extractor = new DescpExtractor(files, logger, files.Count(), outputWriter);
                 extractor.Extract();
 
+                outputWriter.write(extractor.result.ToString());
+                
+                /*
                 if (File.Exists(outputFile))
                 {
                     File.Delete(outputFile);
@@ -66,6 +70,7 @@ namespace DescriptionTool
                         }
                     }
                 }
+                 */
             }
             catch (Exception e)
             {

@@ -15,15 +15,17 @@ namespace DescriptionTool
         private XmlDocument xmlDoc;
         private Logger logger;
         private int totalNumOfFile;
+        private FileWriter outputWriter;
         public  StringBuilder result{get;set;}
 
-        public DescpExtractor(IEnumerable<string> files, Logger logger, int totalNumOfFile)
+        public DescpExtractor(IEnumerable<string> files, Logger logger, int totalNumOfFile, FileWriter writer)
         {
             result = new StringBuilder();
             filesToExtract = files;
             xmlDoc = new XmlDocument();
             this.logger = logger;
             this.totalNumOfFile = totalNumOfFile;
+            outputWriter = writer;
         }
 
         public void Extract()
@@ -32,12 +34,13 @@ namespace DescriptionTool
             try{
                 result.AppendLine("Source File Path,Output File Path,File Name,Topic Class,Meta Description");
 
-                int counter = 1;
+                int counter = 0;
                 foreach (var file in filesToExtract)
                 {
                     //ToDo: Use a background worker thread to do extraction,
                     //ToDo: and fire an event to display the file number and succeed/fail and file counter, etc in console.
 
+                    counter++;
                     Console.Write("{0}/{1} Extracting description in {2} ", counter, totalNumOfFile, file);
                     try
                     {
@@ -130,10 +133,20 @@ namespace DescriptionTool
 
                     var line = filePath + "," + output + "," + fileName + "," + topic + "," + metaDescp;
 
-                    //ToDo: Check the capacity of result is big enough and re-consider where to write "succeeded"
-                    result.AppendLine(line);
+                    //Check if the capacity of result is big enough to hold the new line
+                    if (result.Length + line.Length < result.MaxCapacity)
+                    {
+                        result.AppendLine(line);                        
+                    }
+                    else
+                    {
+                        outputWriter.write(result.ToString());
+                        result.Clear();
+                        result.AppendLine(line);
+                    }
+
                     Console.WriteLine("succeeded");
-                    counter++;
+
                 }
 
                 Console.WriteLine("Type any key to exit");
