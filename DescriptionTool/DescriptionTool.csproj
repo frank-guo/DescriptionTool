@@ -42,16 +42,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AddInputProcessor.cs" />
+    <Compile Include="AdderInputReceiver.cs" />
     <Compile Include="DescpAdder.cs" />
     <Compile Include="DescpExtractor.cs" />
-    <Compile Include="ExtractInputProcessor.cs" />
+    <Compile Include="ExtractorInputReceiver.cs" />
     <Compile Include="FileWriter.cs" />
-    <Compile Include="IInputProcessor.cs" />
-    <Compile Include="InputProcessorBase.cs" />
+    <Compile Include="IInputReceiver.cs" />
+    <Compile Include="InputReceiverBase.cs" />
+    <Compile Include="IDataProcessor.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tool.cs" />
     <Compile Include="ToolType.cs" />
   </ItemGroup>
   <ItemGroup>

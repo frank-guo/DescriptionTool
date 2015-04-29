@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace DescriptionTool
 {
-    class DescpExtractor
+    class DescpExtractor: IDataProcessor
     {
         private IEnumerable<string> files;
         private XmlDocument xmlDoc;
@@ -18,16 +18,15 @@ namespace DescriptionTool
         private FileWriter outputWriter;
         public  StringBuilder result{get;set;}
 
-        public DescpExtractor(string filesFolder, Logger logger, FileWriter writer)
+        public DescpExtractor(InputReceiverBase inputReceiver)
         {
             result = new StringBuilder();
-            this.files = Directory.EnumerateFiles(filesFolder, "*.htm", SearchOption.AllDirectories);
+            this.files = Directory.EnumerateFiles(inputReceiver.InputPath, "*.htm", SearchOption.AllDirectories);
             xmlDoc = new XmlDocument();
-            this.logger = logger;
+            this.logger = new Logger(Path.GetDirectoryName(inputReceiver.OutputPath));
             this.totalNumOfFiles = files.Count();
-            outputWriter = writer;
+            outputWriter = new FileWriter(inputReceiver.OutputPath);
         }
-
 
         public int TotalNumOfFiles
         {
@@ -37,7 +36,7 @@ namespace DescriptionTool
             }
 
         }
-        public void Process()
+        public void process()
         {
                 
             try{
@@ -50,7 +49,7 @@ namespace DescriptionTool
                     //ToDo: and fire an event to display the file number and succeed/fail and file counter, etc in console.
 
                     counter++;
-                    Console.Write("{0}/{1} Extracting description in {2} ", counter, totalNumOfFiles, file);
+                    Console.Write("{0}/{1} Processing description in {2} ", counter, totalNumOfFiles, file);
                     try
                     {
                         xmlDoc.Load(file);
@@ -59,7 +58,7 @@ namespace DescriptionTool
                     {
                         try
                         {
-                            string loginfo = string.Format("Extracting {0} failed \n {1}", file, e.Message);
+                            string loginfo = string.Format("Processing {0} failed \n {1}", file, e.Message);
                             logger.writeLog(loginfo);
                             Console.WriteLine("failed");
                         }
@@ -154,9 +153,15 @@ namespace DescriptionTool
                         result.AppendLine(line);
                     }
 
-                    Console.WriteLine("succeeded. Write the Description!");
+                    Console.WriteLine("succeeded. Get the Description!");
 
                 }
+
+                outputWriter.write(result.ToString());
+                Console.WriteLine("Write All Description to the Output File!");
+                Console.WriteLine("Type in any key to exit..");
+                Console.ReadKey();
+                
             }
             catch (Exception e)
             {

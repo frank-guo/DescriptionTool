@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace DescriptionTool
 {
-    class DescpAdder
+    class DescpAdder: IDataProcessor
     {
         private XmlDocument xmlDoc;
         private Logger logger;
@@ -29,12 +29,12 @@ namespace DescriptionTool
             }
         }
 
-        public DescpAdder(string filesFolder, string inputFile, Logger logger)
+        public DescpAdder(InputReceiverBase inputReceiver)
         {
             xmlDoc = new XmlDocument();
-            this.logger = logger;
-            this.inputFile = inputFile;
-            this.outputFolder = filesFolder;
+            this.logger = new Logger(Path.GetDirectoryName(inputReceiver.InputPath));
+            this.inputFile = inputReceiver.InputPath;
+            this.outputFolder = inputReceiver.OutputPath;
             IntializeInputRecords();
             totalNumOfFiles = inputRecords.Count;
         }
@@ -94,6 +94,9 @@ namespace DescriptionTool
                         writeLog(e, inputRecord.inputFile);
                     }
                 }
+
+                Console.WriteLine("Type in any key to exit..");
+                Console.ReadKey();
             }
             catch (Exception e)
             {
@@ -117,7 +120,7 @@ namespace DescriptionTool
                 string revisedLine = "";
 
                 //Note the fourth column 'meta description' may contain charater '\n'
-                //Therefore some line may only start with description
+                //Therefore some line may start with description
                 for (int i = 1; i < inputLines.Length; i++ )
                 {
                     string line = inputLines[i];

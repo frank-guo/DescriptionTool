@@ -3,8 +3,8 @@ namespace DescriptionTool
 {
     public enum ToolType
     {
-        Extractor = 0,
+        Extractor = 1,
 
-        Adder = 1
+        Adder = 2
     }
 }
