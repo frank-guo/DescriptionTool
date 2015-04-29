@@ -37,7 +37,7 @@ namespace DescriptionTool
             }
 
         }
-        public void Extract()
+        public void Process()
         {
                 
             try{

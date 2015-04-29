@@ -87,7 +87,7 @@ namespace DescriptionTool
                     {
                         XmlWriter writer = XmlWriter.Create(inputRecord.inputFile);
                         xmlDoc.WriteTo(writer);
-                        Console.WriteLine("succeeded. Write the Description!");
+                        Console.WriteLine("succeeded. Insert the Description!");
                     }
                     catch (Exception e)
                     {
@@ -108,22 +108,48 @@ namespace DescriptionTool
             GenerateInputRecords:
             try
             {
-                IEnumerable<string> inputLines = File.ReadAllLines(inputFile);
+                string[] inputLines = File.ReadAllLines(inputFile);
                 inputRecords = new List<InputRecord>();
+                bool isDescpClose = true;
+                string filePath = "";
+                string descp = "";
+                string[] columns = null;
+                string revisedLine = "";
 
-                foreach (string line in inputLines)
+                //Note the fourth column 'meta description' may contain charater '\n'
+                //Therefore some line may only start with description
+                for (int i = 1; i < inputLines.Length; i++ )
                 {
-                    string[] columns = line.Split(',');
-                    var filePath = outputFolder + columns[1] + "\\" + columns[2];
-                    var descp = columns[4];
-                    InputRecord inputRecord = new InputRecord(filePath, descp);
-                    inputRecords.Add(inputRecord);
+                    string line = inputLines[i];
+                    if (isDescpClose)
+                    {
+                        columns = line.Split(',');
+                        filePath = columns[1] + "\\" + columns[2];
+                        revisedLine = columns[4].Substring(1);        //Remove first double quote mark
+                    }
+                    else
+                    {
+                        revisedLine = line;
+                    }
+
+                    if (revisedLine.Contains('"'))
+                    {
+                        isDescpClose = true;
+                        descp += revisedLine.Substring(0, line.Length - 1);    //Trim off the double quote mark at the tail
+                        InputRecord inputRecord = new InputRecord(filePath, descp);
+                        inputRecords.Add(inputRecord);
+                    }
+                    else
+                    {
+                        descp += revisedLine;
+                        isDescpClose = false;
+                    }
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                Console.WriteLine("Would you like to retry?(Y/N)");
+                Console.Write("Would you like to retry?(Y/N)");
                 string retry = Console.ReadLine();
                 if (retry == "Y")
                 {
@@ -135,6 +161,7 @@ namespace DescriptionTool
                 }
             }
         }
+
         private void writeLog(Exception e, String filePath)
         {
             try
