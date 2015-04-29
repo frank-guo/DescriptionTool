@@ -15,72 +15,84 @@ namespace DescriptionTool
         {
             try
             {
-                AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+                //AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-                string inputFolder = null;
-                string outputFile = null;
-                ExtractInputProcessor inputProcessor = new ExtractInputProcessor();
+                ChooseTool:
+                Console.WriteLine("Please choose 1/2: (1)Extract description       (2)Add description\n");
+                string input =  Console.ReadLine();
+                if (input != "1" && input != "2")
+                {
+                    Console.WriteLine("Wrong Choise, Retry");
+                    goto ChooseTool;
+                }
 
-                inputProcessor.receiveInputPath();
-                inputFolder = inputProcessor.InputPath;
-                inputProcessor.receiveOutputPath();
-                outputFile = inputProcessor.OutputPath;
-
-                var files = Directory.EnumerateFiles(inputFolder, "*.htm", SearchOption.AllDirectories);
-                FileWriter outputWriter = new FileWriter(outputFile);
-
-                Console.WriteLine("Totally {0} .htm files found.", files.Count().ToString());
-                Console.ReadKey();
-
-                Logger logger = new Logger(Path.GetDirectoryName(outputFile));
-                DescpExtractor extractor = new DescpExtractor(files, logger, files.Count(), outputWriter);
-                extractor.Extract();
-
-                outputWriter.write(extractor.result.ToString());
                 
-                /*
-                if (File.Exists(outputFile))
+                ToolType toolType = (ToolType)(Convert.ToInt32(input) - 1);
+
+                if (toolType == ToolType.Extractor)
                 {
-                    File.Delete(outputFile);
+
+                    string inputFolder = null;
+                    string outputFile = null;
+                    ExtractInputProcessor inputProcessor = new ExtractInputProcessor();
+
+                    inputProcessor.receiveInputPath();
+                    inputFolder = inputProcessor.InputPath;
+                    inputProcessor.receiveOutputPath();
+                    outputFile = inputProcessor.OutputPath;
+
+                    FileWriter outputWriter = new FileWriter(outputFile);
+                    //Put the log file in output folder
+                    Logger logger = new Logger(Path.GetDirectoryName(outputFile));
+                    DescpExtractor extractor = new DescpExtractor(inputFolder, logger, outputWriter);
+
+                    Console.WriteLine("Totally {0} .htm files found.", extractor.TotalNumOfFiles.ToString());
+                    Console.ReadKey();
+
+
+                    extractor.Extract();
+
+                    outputWriter.write(extractor.result.ToString());
+
+                    Console.WriteLine("Type any key to exit");
+                    Console.ReadKey();
                 }
 
-                save:
-                try
+                if (toolType == ToolType.Adder)
                 {
-                    File.WriteAllText(outputFile, extractor.result.ToString());
+                    string inputFile = null;
+                    string outputFolder = null;
+                    AddInputProcessor inputProcessor = new AddInputProcessor();
+
+                    inputProcessor.receiveInputPath();
+                    inputFile = inputProcessor.InputPath;
+                    inputProcessor.receiveOutputPath();
+                    outputFolder = inputProcessor.OutputPath;
+
+                    //put the log file in the input folder
+                    var inputFolder = Path.GetDirectoryName(inputFile);
+                    Logger logger = new Logger(Path.GetDirectoryName(inputFile));
+                    DescpAdder adder = new DescpAdder(outputFolder, inputFile, logger);
+
+                    Console.WriteLine("Totally {0} .htm files found.", adder.TotalNumOfFiles.ToString());
+                    Console.ReadKey();
+
+
+                    adder.process();
+
+                    Console.WriteLine("Type any key to exit");
+                    Console.ReadKey();
                 }
-                catch(Exception e)
-                {
-                    DialogResult result = DialogResult.Abort;
-                    try
-                    {
-                        result = MessageBox.Show("Please contact the developers with the"
-                          + " following information:\n\n" + e.Message + e.StackTrace,
-                          "Application Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Stop);
-                        if (result == DialogResult.Retry)
-                        {
-                            goto save;
-                        }
-                    }
-                    finally
-                    {
-                        if (result == DialogResult.Abort)
-                        {
-                            Application.Exit();
-                        }
-                    }
-                }
-                 */
             }
             catch (Exception e)
             {
                 Console.Write(e.Message);
             }
-                     
+
         }
 
 
-
+        /*
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             DialogResult result = DialogResult.Abort;
@@ -93,131 +105,6 @@ namespace DescriptionTool
             }
             
         }
-
-        static string extractDescp(XmlNode firstPargrah)
-        {
-            if (firstPargrah == null)
-            {
-                return null;
-            }
-
-            string metaDescp = "";
-
-            metaDescp += '"';
-
-            if (firstPargrah.InnerText != "")
-            {
-                metaDescp += firstPargrah.InnerText;
-            }
-
-            XmlNode immediateList = firstPargrah.NextSibling;
-
-            if (immediateList != null && (immediateList.Name == "ul" || immediateList.Name == "ol" || immediateList.Name == "dl"))
-            {
-                metaDescp += getTextInLines(immediateList);
-            }
-
-            metaDescp += '"';
-
-            return metaDescp;
-
-        }
-
-        static string transform(string filePath)
-        {
-            if (filePath == null)
-            {
-                return null;
-            }
-
-            string retStr = filePath;
-
-            retStr = retStr.Replace(@"Portal\Content", "Content");
-            retStr = retStr.Replace("Financials", "Subsystems");
-            retStr = retStr.Replace("Operations", "Subsystems");
-
-            return retStr;
-        }
-
-
-        static string getTextInLines(XmlNode list)
-        {
-            if ( list == null ){
-                return null;
-            }
-
-            string retStr = "";
-            XmlNodeList items = list.ChildNodes;
-
-            foreach (XmlNode item in items)
-            {
-                if (item.InnerText != "")
-                {
-                    retStr += "\n" + item.InnerText;
-                }
-            }
-
-            return retStr;
-        }
-
-        static XmlNode getFirstParagraphAfterH1(XmlDocument xmlDoc)
-        {
-            XmlNode h1 = xmlDoc.GetElementsByTagName("h1")[0];
-            if (h1 == null)
-            {
-                return null;
-            }
-
-            XmlNode nextSibling = h1.NextSibling;
-            while (nextSibling != null && nextSibling.Name != "p")
-            {
-                nextSibling = nextSibling.NextSibling;
-            }
-
-            return nextSibling;
-        }
-
-        static XmlNode getFirstParagAfterOverViewH2(XmlDocument xmlDoc)
-        {
-            XmlNode h2 = xmlDoc.GetElementsByTagName("h2")[0];
-            if ( h2 == null )
-            {
-                return null;
-            }
-
-            var firstChild = h2.FirstChild;
-            if( firstChild != null && firstChild.Name !="span" ||
-                firstChild.Attributes["class"] == null || firstChild.Attributes["class"].Value != "UIOverview")
-            {
-                return null;
-            }
-
-            XmlNode nextSibling = h2.NextSibling;
-            while (nextSibling != null && nextSibling.Name != "p")
-            {
-                nextSibling = nextSibling.NextSibling;
-            }
-
-            return nextSibling;
-        }
-
-        static void getFilePathAndName(string fileFullName, ref string filePath, ref string fileName)
-        {
-            if (fileFullName == null)
-            {
-                return;
-            }
-
-            int idxOfLastSlash = fileFullName.LastIndexOf(@"\");
-
-            if ( idxOfLastSlash != -1)
-            {
-                fileName = fileFullName.Substring(idxOfLastSlash + 1);
-                filePath = fileFullName.Substring(0, idxOfLastSlash);
-                return;
-            }
-
-            return;
-        }
+         */
     }
 }

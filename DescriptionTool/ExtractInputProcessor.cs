@@ -35,7 +35,7 @@ namespace DescriptionTool
             bool isOutputCreated = false;
             while (!isOutputCreated)
             {
-                Console.Write("Please specify the output file(if same as the input, type in 'Enter'): \n");
+                Console.Write("Please specify the output file: \n");
 
                 outputPath = Console.ReadLine();
 

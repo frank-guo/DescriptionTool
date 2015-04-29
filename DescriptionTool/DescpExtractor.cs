@@ -11,23 +11,32 @@ namespace DescriptionTool
 {
     class DescpExtractor
     {
-        private IEnumerable<string> filesToExtract;
+        private IEnumerable<string> files;
         private XmlDocument xmlDoc;
         private Logger logger;
-        private int totalNumOfFile;
+        private int totalNumOfFiles;
         private FileWriter outputWriter;
         public  StringBuilder result{get;set;}
 
-        public DescpExtractor(IEnumerable<string> files, Logger logger, int totalNumOfFile, FileWriter writer)
+        public DescpExtractor(string filesFolder, Logger logger, FileWriter writer)
         {
             result = new StringBuilder();
-            filesToExtract = files;
+            this.files = Directory.EnumerateFiles(filesFolder, "*.htm", SearchOption.AllDirectories);
             xmlDoc = new XmlDocument();
             this.logger = logger;
-            this.totalNumOfFile = totalNumOfFile;
+            this.totalNumOfFiles = files.Count();
             outputWriter = writer;
         }
 
+
+        public int TotalNumOfFiles
+        {
+            get
+            {
+                return totalNumOfFiles;
+            }
+
+        }
         public void Extract()
         {
                 
@@ -35,13 +44,13 @@ namespace DescriptionTool
                 result.AppendLine("Source File Path,Output File Path,File Name,Topic Class,Meta Description");
 
                 int counter = 0;
-                foreach (var file in filesToExtract)
+                foreach (var file in files)
                 {
                     //ToDo: Use a background worker thread to do extraction,
                     //ToDo: and fire an event to display the file number and succeed/fail and file counter, etc in console.
 
                     counter++;
-                    Console.Write("{0}/{1} Extracting description in {2} ", counter, totalNumOfFile, file);
+                    Console.Write("{0}/{1} Extracting description in {2} ", counter, totalNumOfFiles, file);
                     try
                     {
                         xmlDoc.Load(file);
@@ -145,31 +154,15 @@ namespace DescriptionTool
                         result.AppendLine(line);
                     }
 
-                    Console.WriteLine("succeeded");
+                    Console.WriteLine("succeeded. Write the Description!");
 
                 }
-
-                Console.WriteLine("Type any key to exit");
-                Console.ReadKey();
             }
             catch (Exception e)
             {
                 Console.Write(e.Message);
             }
                      
-        }
-
-        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            DialogResult result = DialogResult.Abort;
-            Exception ex = (Exception)e.ExceptionObject;
-            if (ex is DirectoryNotFoundException)
-            {
-                result = MessageBox.Show("Whoops! Please contact the developers with the"
-                  + " following information:\n\n" + ex.Message + ex.StackTrace,
-                  "Application Error", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Stop);
-            }
-            
         }
 
         private static string extractDescp(XmlNode firstPargrah)
