@@ -55,19 +55,22 @@ namespace DescriptionTool
             try
             {
                 //Tranverse all the input files to insert the description
-                int counter = 0;
+                int fileCount = 0;
+                
                 foreach (var inputRecord in inputRecords)
                 {
-                    counter++;
-                    Console.Write("{0}/{1} Processing description in {2} ", counter, totalNumOfFiles, inputRecord.inputFile);
+                    fileCount++;
+                    Console.Write("{0}/{1} Processing description in {2} ", fileCount, totalNumOfFiles, inputRecord.inputFile);
 
+                    //Note: The output folder actually acts as the input folder too
+                    string inputFullName = outputFolder + "\\" + inputRecord.inputFile;
                     try
-                    {
-                        xmlDoc.Load(inputRecord.inputFile);
+                    {                       
+                        xmlDoc.Load(inputFullName);
                     }
                     catch (Exception e)
                     {
-                        writeLog(e, inputRecord.inputFile);
+                        writeLog(e, inputFullName);
                         continue;
                     }
 
@@ -83,10 +86,11 @@ namespace DescriptionTool
                         node.InsertBefore(descriptionElement, firstChild);
                     }                        
 
-                    //Write back xmlDoc to its file
+                    //Write xmlDoc to its file
                     try
                     {
-                        XmlWriter writer = XmlWriter.Create(inputRecord.inputFile);
+                        string outputFile = outputFolder + "\\" + inputRecord.inputFile;
+                        XmlWriter writer = XmlWriter.Create(outputFile);
                         xmlDoc.Save(writer);
                         Console.WriteLine("succeeded. Insert the Description!");
                     }
@@ -96,6 +100,7 @@ namespace DescriptionTool
                     }
                 }
 
+                Console.WriteLine("Failed to process {0} files. Detail in log.txt.", logger.FailCount);
                 Console.WriteLine("Finish the description insertion to the output files!");
                 Console.WriteLine("Type in any key to exit..");
                 Console.ReadKey();

@@ -16,11 +16,13 @@ namespace DescriptionTool
         private Logger logger;
         private int totalNumOfFiles;
         private FileWriter outputWriter;
+        private string inputFolder;
         public  StringBuilder result{get;set;}
 
         public DescpExtractor(InputReceiverBase inputReceiver)
         {
             result = new StringBuilder();
+            this.inputFolder = inputReceiver.InputPath;
             this.files = Directory.EnumerateFiles(inputReceiver.InputPath, "*.htm", SearchOption.AllDirectories);
             xmlDoc = new XmlDocument();
             this.logger = new Logger(Path.GetDirectoryName(inputReceiver.OutputPath));
@@ -42,14 +44,15 @@ namespace DescriptionTool
             try{
                 result.AppendLine("Source File Path,Output File Path,File Name,Topic Class,Meta Description");
 
-                int counter = 0;
+                int fileCount = 0;
+
                 foreach (var file in files)
                 {
                     //ToDo: Use a background worker thread to do extraction,
                     //ToDo: and fire an event to display the file number and succeed/fail and file counter, etc in console.
 
-                    counter++;
-                    Console.Write("{0}/{1} Processing description in {2} ", counter, totalNumOfFiles, file);
+                    fileCount++;
+                    Console.Write("{0}/{1} Processing description in {2} ", fileCount, totalNumOfFiles, file);
                     try
                     {
                         xmlDoc.Load(file);
@@ -111,12 +114,13 @@ namespace DescriptionTool
                     //Extract the required information
                     var topic = xmlDoc.DocumentElement.GetAttribute("class");
                     string fileFullName = file;
-                    string filePath = "";
+                    string fileFullPath = "";
                     string fileName = "";
 
-                    getFilePathAndName(fileFullName, ref filePath, ref fileName);
+                    getFilePathAndName(fileFullName, ref fileFullPath, ref fileName);
+                    string fileRelativePath = relativePath(fileFullPath, inputFolder);
 
-                    string output = transform(filePath);
+                    string outputRelativePath = transform(fileRelativePath);
 
                     string metaDescp = "";
 
@@ -139,7 +143,7 @@ namespace DescriptionTool
                         continue;
                     }
 
-                    var line = filePath + "," + output + "," + fileName + "," + topic + "," + metaDescp;
+                    var line = fileRelativePath + "," + outputRelativePath + "," + fileName + "," + topic + "," + metaDescp;
 
                     //Check if the capacity of result is big enough to hold the new line
                     if (result.Length + line.Length < result.MaxCapacity)
@@ -158,6 +162,7 @@ namespace DescriptionTool
                 }
 
                 outputWriter.write(result.ToString());
+                Console.WriteLine("Failed to process {0} files. Detail in log.txt. ", logger.FailCount);
                 Console.WriteLine("Finish writing description to the output file!");
                 Console.WriteLine("Type in any key to exit..");
                 Console.ReadKey();
@@ -168,6 +173,36 @@ namespace DescriptionTool
                 Console.Write(e.Message);
             }
                      
+        }
+
+        private void writeLog(Exception e, String filePath)
+        {
+            try
+            {
+                string loginfo = string.Format("Processing {0} failed \n {1}", filePath, e.Message);
+                logger.writeLog(loginfo);
+                Console.WriteLine("failed");
+            }
+            catch (Exception logEx)
+            {
+                Console.WriteLine("failed");
+                Console.WriteLine(e.Message + logEx.Message);
+            }
+        }
+
+        private string relativePath(string fullPath, string root)
+        {            
+            if (!fullPath.StartsWith("root") || fullPath==null || root == null)
+            {
+                return null;
+            }
+            
+            if (!root.EndsWith("\\"))
+            {
+                root += "\\";
+            }
+
+            return fullPath.Substring(root.Length + 1);
         }
 
         private static string extractDescp(XmlNode firstPargrah)
@@ -289,6 +324,7 @@ namespace DescriptionTool
             if ( idxOfLastSlash != -1)
             {
                 fileName = fileFullName.Substring(idxOfLastSlash + 1);
+                //filePath does not end with "\"
                 filePath = fileFullName.Substring(0, idxOfLastSlash);
                 return;
             }

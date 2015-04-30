@@ -11,10 +11,17 @@ namespace DescriptionTool
     {
         private string _logfile;
         private static string Filename = "log.txt";
+        private int failCount;
+
+        public int FailCount
+        {
+            get { return failCount; }
+        }
 
         public Logger(string logFolder)
         {
             _logfile = logFolder + "\\" + Filename;
+            failCount = 0;
 
             if (File.Exists(_logfile))
             {
@@ -24,6 +31,7 @@ namespace DescriptionTool
 
         public void writeLog(string line)
         {
+            failCount++;
             using (StreamWriter log = File.AppendText(_logfile))
             {
                 log.WriteLine(line);

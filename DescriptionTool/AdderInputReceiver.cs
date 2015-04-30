@@ -46,11 +46,13 @@ namespace DescriptionTool
 
                 isOutputFolderValid = true;
 
-                string outputFolderPath = Path.GetDirectoryName(outputPath);
-
-                if (!Directory.Exists(outputFolderPath))
+                if (!Directory.Exists(outputPath))
                 {
                     isOutputFolderValid = false;
+                    if (outputPath.EndsWith("\\"))
+                    {
+                        outputPath = outputPath.Substring(0,outputPath.Length-1);       //trim off the tail of "\"
+                    }
                 }
             }
         }

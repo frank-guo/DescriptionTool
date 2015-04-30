@@ -22,6 +22,10 @@ namespace DescriptionTool
                 if (Directory.Exists(inputPath))
                 {
                     isInputFolderValid = true;
+                    if (inputPath.EndsWith("\\"))
+                    {
+                        inputPath = inputPath.Substring(0, outputPath.Length - 1);       //trim off the tail of "\"
+                    }
                 }
                 else
                 {
