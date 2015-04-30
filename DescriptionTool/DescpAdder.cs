@@ -90,6 +90,7 @@ namespace DescriptionTool
                     try
                     {
                         string outputFile = outputFolder + "\\" + inputRecord.inputFile;
+                        xmlDoc.PreserveWhitespace = true;
                         XmlWriter writer = XmlWriter.Create(outputFile);
                         xmlDoc.Save(writer);
                         Console.WriteLine("succeeded. Insert the Description!");
@@ -100,10 +101,8 @@ namespace DescriptionTool
                     }
                 }
 
-                Console.WriteLine("Failed to process {0} files. Detail in log.txt.", logger.FailCount);
+                Console.WriteLine("Failed to process {0} files. Details in {1}\\log.txt.", logger.FailCount, Path.GetDirectoryName(inputFile));
                 Console.WriteLine("Finish the description insertion to the output files!");
-                Console.WriteLine("Type in any key to exit..");
-                Console.ReadKey();
             }
             catch (Exception e)
             {

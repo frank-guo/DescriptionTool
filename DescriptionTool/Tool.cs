@@ -48,7 +48,11 @@ namespace DescriptionTool
             Console.WriteLine("Totally {0} .htm files to be processed.", dataProcessor.TotalNumOfFiles.ToString());
             Console.WriteLine("Type in any key to continue..");
             Console.ReadKey();
+
             dataProcessor.process();
+
+            Console.WriteLine("Type in any key to exit..");
+            Console.ReadKey();
                  
         }
     }

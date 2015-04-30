@@ -16,7 +16,7 @@ namespace DescriptionTool
             try
             {
                 ChooseTool:
-                Console.WriteLine("Please choose 1/2: (1)Extract description       (2)Add description");
+                Console.WriteLine("Please choose 1/2:\n(1)Extract description       (2)Add description");
                 string input =  Console.ReadLine();
                 if (input != "1" && input != "2")
                 {

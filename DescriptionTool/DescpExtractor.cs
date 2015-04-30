@@ -17,12 +17,14 @@ namespace DescriptionTool
         private int totalNumOfFiles;
         private FileWriter outputWriter;
         private string inputFolder;
+        private string outputFile;
         public  StringBuilder result{get;set;}
 
         public DescpExtractor(InputReceiverBase inputReceiver)
         {
             result = new StringBuilder();
             this.inputFolder = inputReceiver.InputPath;
+            this.outputFile = inputReceiver.OutputPath;
             this.files = Directory.EnumerateFiles(inputReceiver.InputPath, "*.htm", SearchOption.AllDirectories);
             xmlDoc = new XmlDocument();
             this.logger = new Logger(Path.GetDirectoryName(inputReceiver.OutputPath));
@@ -137,11 +139,25 @@ namespace DescriptionTool
                         metaDescp = extractDescp(firstPargrah);
                     }
 
-                    if (metaDescp == "\"\"")
+                    if (metaDescp == "")
                     {
                         Console.WriteLine("succeeded");
                         continue;
                     }
+
+                    //strip out all quotes in metaDescp, and then enclose it with double quotes
+                    //string actualDescp = metaDescp.Substring(1,metaDescp.Length-2); //First trim off the enclosed double quotes
+                    if (metaDescp.Contains('"'))
+                    {
+                        metaDescp = metaDescp.Replace('"', ' ');
+                    }
+
+                    if (metaDescp.Contains('\''))
+                    {
+                        metaDescp = metaDescp.Replace('\'', ' ');
+                    }
+
+                    metaDescp = '"' + metaDescp + '"';
 
                     var line = fileRelativePath + "," + outputRelativePath + "," + fileName + "," + topic + "," + metaDescp;
 
@@ -162,15 +178,12 @@ namespace DescriptionTool
                 }
 
                 outputWriter.write(result.ToString());
-                Console.WriteLine("Failed to process {0} files. Detail in log.txt. ", logger.FailCount);
-                Console.WriteLine("Finish writing description to the output file!");
-                Console.WriteLine("Type in any key to exit..");
-                Console.ReadKey();
-                
+                Console.WriteLine("Failed to process {0} files. Details in {1}\\log.txt. ", logger.FailCount, Path.GetDirectoryName(outputFile));
+                Console.WriteLine("Finish writing description to the output file!");                
             }
             catch (Exception e)
             {
-                Console.Write(e.Message);
+                Console.Write(e.Message + "\n");
             }
                      
         }
@@ -192,17 +205,20 @@ namespace DescriptionTool
 
         private string relativePath(string fullPath, string root)
         {            
-            if (!fullPath.StartsWith("root") || fullPath==null || root == null)
+            if (!fullPath.StartsWith(root) || fullPath==null || root == null)
             {
                 return null;
             }
-            
-            if (!root.EndsWith("\\"))
-            {
-                root += "\\";
-            }
 
-            return fullPath.Substring(root.Length + 1);
+            //If fullPath equals to root, then return ""
+            if (fullPath.Length > root.Length)
+            {
+                return fullPath.Substring(root.Length + 1);
+            }
+            else
+            {
+                return "";
+            }
         }
 
         private static string extractDescp(XmlNode firstPargrah)
@@ -214,7 +230,7 @@ namespace DescriptionTool
 
             string metaDescp = "";
 
-            metaDescp += '"';
+            //metaDescp += '"';
 
             if (firstPargrah.InnerText != "")
             {
@@ -228,7 +244,7 @@ namespace DescriptionTool
                 metaDescp += getTextInLines(immediateList);
             }
 
-            metaDescp += '"';
+            //metaDescp += '"';
 
             return metaDescp;
 

@@ -13,7 +13,7 @@ namespace DescriptionTool
         {
             bool isInputFolderValid = false;
 
-            Console.Write("Please specify the input folder(Righ click on the top to do paste): \n");
+            Console.Write("Input folder(Righ click on the top and choose Edit to do paste): \n");
 
             while (!isInputFolderValid)
             {
@@ -39,7 +39,7 @@ namespace DescriptionTool
             bool isOutputCreated = false;
             while (!isOutputCreated)
             {
-                Console.Write("Please specify the output file: \n");
+                Console.Write("Output file: (Up arrow gets the input above) \n");
 
                 outputPath = Console.ReadLine();
 
