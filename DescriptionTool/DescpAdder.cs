@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -86,7 +87,7 @@ namespace DescriptionTool
                     try
                     {
                         XmlWriter writer = XmlWriter.Create(inputRecord.inputFile);
-                        xmlDoc.WriteTo(writer);
+                        xmlDoc.Save(writer);
                         Console.WriteLine("succeeded. Insert the Description!");
                     }
                     catch (Exception e)
@@ -95,6 +96,7 @@ namespace DescriptionTool
                     }
                 }
 
+                Console.WriteLine("Finish the description insertion to the output files!");
                 Console.WriteLine("Type in any key to exit..");
                 Console.ReadKey();
             }
@@ -116,7 +118,7 @@ namespace DescriptionTool
                 bool isDescpClose = true;
                 string filePath = "";
                 string descp = "";
-                string[] columns = null;
+                List<string> columns = null;
                 string revisedLine = "";
 
                 //Note the fourth column 'meta description' may contain charater '\n'
@@ -126,7 +128,8 @@ namespace DescriptionTool
                     string line = inputLines[i];
                     if (isDescpClose)
                     {
-                        columns = line.Split(',');
+                        //Note the description may contain ',' but it must be enclosed with double quotes
+                        columns = mySplit(line, ',');
                         filePath = columns[1] + "\\" + columns[2];
                         revisedLine = columns[4].Substring(1);        //Remove first double quote mark
                     }
@@ -138,33 +141,55 @@ namespace DescriptionTool
                     if (revisedLine.Contains('"'))
                     {
                         isDescpClose = true;
-                        descp += revisedLine.Substring(0, line.Length - 1);    //Trim off the double quote mark at the tail
+                        descp += revisedLine.Substring(0, revisedLine.Length - 1);    //Trim off the double quote mark at the tail
                         InputRecord inputRecord = new InputRecord(filePath, descp);
                         inputRecords.Add(inputRecord);
+                        descp = "";
                     }
                     else
                     {
-                        descp += revisedLine;
+                        descp += revisedLine + " ";
                         isDescpClose = false;
                     }
                 }
             }
             catch (Exception e)
             {
+                Retry:
                 Console.WriteLine(e.Message);
                 Console.Write("Would you like to retry?(Y/N)");
                 string retry = Console.ReadLine();
-                if (retry == "Y")
+                if (retry == "Y" || retry == "y")
                 {
                     goto GenerateInputRecords;
                 }
-                else
+                if (retry == "N" || retry == "n")
                 {
                     Application.Exit();
                 }
+                goto Retry;
             }
         }
 
+
+        private List<string> mySplit(string str, char ch)
+        {
+            List<string> result = new List<string>();
+            int idxOfComma = str.IndexOf(ch);
+            int idxOfQuote = str.IndexOf('"');
+
+            //If string contians a comma and the quote is behinde the comma then extract the part prior to the comma
+            while ( idxOfComma != -1 && idxOfQuote > idxOfComma )
+            {
+                result.Add(str.Substring(0, idxOfComma));
+                str = str.Substring(idxOfComma + 1);
+                idxOfComma = str.IndexOf(ch);
+                idxOfQuote = str.IndexOf('"');
+            }
+            result.Add(str);
+
+            return result;
+        }
         private void writeLog(Exception e, String filePath)
         {
             try

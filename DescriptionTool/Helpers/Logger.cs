@@ -15,17 +15,16 @@ namespace DescriptionTool
         public Logger(string logFolder)
         {
             _logfile = logFolder + "\\" + Filename;
-        }
 
-        public void writeLog(string line)
-        {
             if (File.Exists(_logfile))
             {
                 File.Delete(_logfile);
             }
+        }
 
-
-            using (StreamWriter log = File.CreateText(_logfile))
+        public void writeLog(string line)
+        {
+            using (StreamWriter log = File.AppendText(_logfile))
             {
                 log.WriteLine(line);
             }

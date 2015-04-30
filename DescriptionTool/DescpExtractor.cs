@@ -158,7 +158,7 @@ namespace DescriptionTool
                 }
 
                 outputWriter.write(result.ToString());
-                Console.WriteLine("Write All Description to the Output File!");
+                Console.WriteLine("Finish writing description to the output file!");
                 Console.WriteLine("Type in any key to exit..");
                 Console.ReadKey();
                 
