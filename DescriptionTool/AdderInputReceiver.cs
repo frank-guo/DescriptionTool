@@ -1,4 +1,6 @@
-﻿using System;
+﻿/* Copyright (c) 1994-2015 Sage Software, Inc.  All rights reserved. */
+
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +9,14 @@ using System.Threading.Tasks;
 
 namespace DescriptionTool
 {
+    /// <summary>
+    /// Class AdderInputReceiver
+    /// </summary>
     class AdderInputReceiver : InputReceiverBase
     {
+        /// <summary>
+        /// Receive the input path from keyboard
+        /// </summary>
         public override void receiveInputPath()
         {
             bool isInputFileValid = false;
@@ -30,6 +38,9 @@ namespace DescriptionTool
             }
         }
 
+        /// <summary>
+        /// Receive the output path from keyboard
+        /// </summary>
         public override void receiveOutputPath()
         {
             bool isOutputFolderValid = false;

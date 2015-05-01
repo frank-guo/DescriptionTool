@@ -1,4 +1,6 @@
-﻿using System;
+﻿/* Copyright (c) 1994-2015 Sage Software, Inc.  All rights reserved. */
+
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,10 +10,17 @@ using System.Windows.Forms;
 
 namespace DescriptionTool
 {
+    /// <summary>
+    /// Class FileWriter
+    /// </summary>
     class FileWriter
     {
         private string _outputFile;
 
+        /// <summary>
+        /// FileWriter Constructor
+        /// </summary>
+        /// <param name="outputFile">Output File Full Path</param>
         public FileWriter(string outputFile)
         {
             _outputFile = outputFile;
@@ -22,6 +31,10 @@ namespace DescriptionTool
             }
         }
 
+        /// <summary>
+        /// Write content to the ouputFile
+        /// </summary>
+        /// <param name="contentToWrite">Content To write</param>
         public void write(string contentToWrite)
         {
         save:

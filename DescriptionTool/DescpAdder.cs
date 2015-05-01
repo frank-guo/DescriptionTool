@@ -1,4 +1,6 @@
-﻿using System;
+﻿/* Copyright (c) 1994-2015 Sage Software, Inc.  All rights reserved. */
+
+using System;
 using System.IO;
 using System.Xml;
 using System.Collections;
@@ -10,6 +12,9 @@ using System.Windows.Forms;
 
 namespace DescriptionTool
 {
+    /// <summary>
+    /// DescpAdder Class
+    /// </summary>
     class DescpAdder: IDataProcessor
     {
         private XmlDocument xmlDoc;
@@ -18,6 +23,11 @@ namespace DescriptionTool
         private string inputFile;
         private string outputFolder;
         private List<InputRecord> inputRecords;
+
+        /// <summary>
+        /// Input record which stores the output file path relative to output folder 
+        /// and the corresponding meta description that will be inserted to the output file
+        /// </summary>
         private struct InputRecord
         {
             public string inputFile;
@@ -30,6 +40,10 @@ namespace DescriptionTool
             }
         }
 
+        /// <summary>
+        /// DescpAdder Constructor
+        /// </summary>
+        /// <param name="inputReceiver">InputReceiverBase</param>
         public DescpAdder(InputReceiverBase inputReceiver)
         {
             xmlDoc = new XmlDocument();
@@ -40,6 +54,9 @@ namespace DescriptionTool
             totalNumOfFiles = inputRecords.Count;
         }
 
+        /// <summary>
+        /// Property TotalNumOfFiles
+        /// </summary>
         public int TotalNumOfFiles
         {
             get
@@ -49,6 +66,10 @@ namespace DescriptionTool
 
         }
 
+        /// <summary>
+        /// Get the meta description from the input file
+        /// and insert it to the correspondg output file
+        /// </summary>
         public void process()
         {
 
@@ -65,7 +86,8 @@ namespace DescriptionTool
                     //Note: The output folder actually acts as the input folder too
                     string inputFullName = outputFolder + "\\" + inputRecord.inputFile;
                     try
-                    {                       
+                    {
+                        xmlDoc.PreserveWhitespace = true;
                         xmlDoc.Load(inputFullName);
                     }
                     catch (Exception e)
@@ -90,7 +112,7 @@ namespace DescriptionTool
                     try
                     {
                         string outputFile = outputFolder + "\\" + inputRecord.inputFile;
-                        xmlDoc.PreserveWhitespace = true;
+                        
                         XmlWriter writer = XmlWriter.Create(outputFile);
                         xmlDoc.Save(writer);
                         Console.WriteLine("succeeded. Insert the Description!");
@@ -111,6 +133,9 @@ namespace DescriptionTool
 
         }
 
+        /// <summary>
+        /// Intialize inputRecords which stores all the InputRecords generated from the input file
+        /// </summary>
         private void IntializeInputRecords () 
         {
             //Get the list of output file name and meta description
@@ -134,6 +159,14 @@ namespace DescriptionTool
                     {
                         //Note the description may contain ',' but it must be enclosed with double quotes
                         columns = mySplit(line, ',');
+
+                        //Make sure get five columns in one line
+                        if (columns.Count != 5)
+                        {
+                            isDescpClose = true;
+                            Console.WriteLine("Line {0} has wrong format in the input file!", i);
+                            continue;
+                        }
                         filePath = columns[1] + "\\" + columns[2];
                         revisedLine = columns[4].Substring(1);        //Remove first double quote mark
                     }
@@ -175,14 +208,20 @@ namespace DescriptionTool
             }
         }
 
-
+        /// <summary>
+        /// Split one line of the input file by comma
+        /// Ignore the commas in meta description, which is enclosed by double quotes
+        /// </summary>
+        /// <param name="str">One line of the input file </param>
+        /// <param name="ch">Delimiter</param>
+        /// <returns>String list</returns>
         private List<string> mySplit(string str, char ch)
         {
             List<string> result = new List<string>();
             int idxOfComma = str.IndexOf(ch);
             int idxOfQuote = str.IndexOf('"');
 
-            //If string contians a comma and the quote is behinde the comma then extract the part prior to the comma
+            //If string contains a comma and the quote is behinde the comma then extract the part prior to the comma
             while ( idxOfComma != -1 && idxOfQuote > idxOfComma )
             {
                 result.Add(str.Substring(0, idxOfComma));
@@ -194,18 +233,24 @@ namespace DescriptionTool
 
             return result;
         }
-        private void writeLog(Exception e, String filePath)
+
+        /// <summary>
+        /// Write log info
+        /// </summary>
+        /// <param name="exception">Exception</param>
+        /// <param name="filePath">File which produces the exception</param>
+        private void writeLog(Exception exception, String filePath)
         {
             try
             {
-                string loginfo = string.Format("Processing {0} failed \n {1}", filePath, e.Message);
-                logger.writeLog(loginfo);
+                string loginfo = string.Format("Processing {0} failed \n {1}", filePath, exception.Message);
+                logger.writeLine(loginfo);
                 Console.WriteLine("failed");
             }
             catch (Exception logEx)
             {
                 Console.WriteLine("failed");
-                Console.WriteLine(e.Message + logEx.Message);
+                Console.WriteLine(exception.Message + logEx.Message);
             }
         }
 

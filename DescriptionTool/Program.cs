@@ -1,4 +1,6 @@
-﻿using System;
+﻿/* Copyright (c) 1994-2015 Sage Software, Inc.  All rights reserved. */
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,8 +11,15 @@ using System.Windows.Forms;
 
 namespace DescriptionTool
 {
+    /// <summary>
+    /// Class Main
+    /// </summary>
     class Program
     {
+        /// <summary>
+        /// Main method
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             try
@@ -30,7 +39,7 @@ namespace DescriptionTool
             }
             catch (Exception e)
             {
-                Console.Write(e.Message);
+                Console.Write(e.Message + "\n");
                 Console.WriteLine("Type in any key to exit..");
                 Console.ReadKey();
             }

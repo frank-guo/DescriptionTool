@@ -1,4 +1,6 @@
-﻿using System;
+﻿/* Copyright (c) 1994-2015 Sage Software, Inc.  All rights reserved. */
+
+using System;
 using System.IO;
 using System.Xml;
 using System.Collections.Generic;
@@ -9,6 +11,9 @@ using System.Windows.Forms;
 
 namespace DescriptionTool
 {
+    /// <summary>
+    /// Class DescpExtractor
+    /// </summary>
     class DescpExtractor: IDataProcessor
     {
         private IEnumerable<string> files;
@@ -20,6 +25,10 @@ namespace DescriptionTool
         private string outputFile;
         public  StringBuilder result{get;set;}
 
+        /// <summary>
+        /// DescpExtractor Constructor
+        /// </summary>
+        /// <param name="inputReceiver"></param>
         public DescpExtractor(InputReceiverBase inputReceiver)
         {
             result = new StringBuilder();
@@ -32,6 +41,9 @@ namespace DescriptionTool
             outputWriter = new FileWriter(inputReceiver.OutputPath);
         }
 
+        /// <summary>
+        /// Property TotalNumOfFiles
+        /// </summary>
         public int TotalNumOfFiles
         {
             get
@@ -40,6 +52,10 @@ namespace DescriptionTool
             }
 
         }
+
+        /// <summary>
+        /// Process the input files and generate extracted description
+        /// </summary>
         public void process()
         {
                 
@@ -64,7 +80,7 @@ namespace DescriptionTool
                         try
                         {
                             string loginfo = string.Format("Processing {0} failed \n {1}", file, e.Message);
-                            logger.writeLog(loginfo);
+                            logger.writeLine(loginfo);
                             Console.WriteLine("failed");
                         }
                         catch(Exception logEx)
@@ -139,14 +155,13 @@ namespace DescriptionTool
                         metaDescp = extractDescp(firstPargrah);
                     }
 
-                    if (metaDescp == "")
+                    if (metaDescp == "" || metaDescp == null )
                     {
                         Console.WriteLine("succeeded");
                         continue;
                     }
 
                     //strip out all quotes in metaDescp, and then enclose it with double quotes
-                    //string actualDescp = metaDescp.Substring(1,metaDescp.Length-2); //First trim off the enclosed double quotes
                     if (metaDescp.Contains('"'))
                     {
                         metaDescp = metaDescp.Replace('"', ' ');
@@ -188,21 +203,32 @@ namespace DescriptionTool
                      
         }
 
-        private void writeLog(Exception e, String filePath)
+        /// <summary>
+        /// Write log info
+        /// </summary>
+        /// <param name="exception">Exception</param>
+        /// <param name="filePath">File which produces the exception</param>
+        private void writeLog(Exception exception, String filePath)
         {
             try
             {
-                string loginfo = string.Format("Processing {0} failed \n {1}", filePath, e.Message);
-                logger.writeLog(loginfo);
+                string loginfo = string.Format("Processing {0} failed \n {1}", filePath, exception.Message);
+                logger.writeLine(loginfo);
                 Console.WriteLine("failed");
             }
             catch (Exception logEx)
             {
                 Console.WriteLine("failed");
-                Console.WriteLine(e.Message + logEx.Message);
+                Console.WriteLine(exception.Message + logEx.Message);
             }
         }
 
+        /// <summary>
+        /// Get the rest path relative to root
+        /// </summary>
+        /// <param name="fullPath">Full path</param>
+        /// <param name="root">Root path</param>
+        /// <returns>Relative path</returns>
         private string relativePath(string fullPath, string root)
         {            
             if (!fullPath.StartsWith(root) || fullPath==null || root == null)
@@ -221,6 +247,11 @@ namespace DescriptionTool
             }
         }
 
+        /// <summary>
+        /// Etract the required description
+        /// </summary>
+        /// <param name="firstPargrah">Xml P node</param>
+        /// <returns>Descrption</returns>
         private static string extractDescp(XmlNode firstPargrah)
         {
             if (firstPargrah == null)
@@ -229,8 +260,6 @@ namespace DescriptionTool
             }
 
             string metaDescp = "";
-
-            //metaDescp += '"';
 
             if (firstPargrah.InnerText != "")
             {
@@ -244,12 +273,15 @@ namespace DescriptionTool
                 metaDescp += getTextInLines(immediateList);
             }
 
-            //metaDescp += '"';
-
             return metaDescp;
 
         }
 
+        /// <summary>
+        /// Transfrom input file paths to output file paths
+        /// </summary>
+        /// <param name="filePath">Input file path</param>
+        /// <returns>Output file path</returns>
         private static string transform(string filePath)
         {
             if (filePath == null)
@@ -266,7 +298,11 @@ namespace DescriptionTool
             return retStr;
         }
 
-
+        /// <summary>
+        /// Get the text in an Xml list
+        /// </summary>
+        /// <param name="list">Xml list node</param>
+        /// <returns>text</returns>
         private static string getTextInLines(XmlNode list)
         {
             if ( list == null ){
@@ -287,6 +323,11 @@ namespace DescriptionTool
             return retStr;
         }
 
+        /// <summary>
+        /// Get the first paragraph after the first heading h1
+        /// </summary>
+        /// <param name="xmlDoc">XmlDocument</param>
+        /// <returns>The first paragraph node</returns>
         private static XmlNode getFirstParagraphAfterH1(XmlDocument xmlDoc)
         {
             XmlNode h1 = xmlDoc.GetElementsByTagName("h1")[0];
@@ -304,6 +345,11 @@ namespace DescriptionTool
             return nextSibling;
         }
 
+        /// <summary>
+        /// Get the first paragraph after the over view heading h2
+        /// </summary>
+        /// <param name="xmlDoc">XmlDocument</param>
+        /// <returns>The first pargraph node</returns>
         private static XmlNode getFirstParagAfterOverViewH2(XmlDocument xmlDoc)
         {
             XmlNode h2 = xmlDoc.GetElementsByTagName("h2")[0];
@@ -313,10 +359,21 @@ namespace DescriptionTool
             }
 
             var firstChild = h2.FirstChild;
-            if( firstChild != null && firstChild.Name !="span" ||
-                firstChild.Attributes["class"] == null || firstChild.Attributes["class"].Value != "UIOverview")
+
+            if (firstChild.Name == "#text")
             {
-                return null;
+                if (h2.InnerText != "Overview")
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                if (firstChild.Name != "span" || firstChild.Attributes["class"] == null
+                        || firstChild.Attributes["class"].Value != "UIOverview" || h2.InnerText != "Overview")
+                {
+                    return null;
+                }
             }
 
             XmlNode nextSibling = h2.NextSibling;
@@ -328,6 +385,12 @@ namespace DescriptionTool
             return nextSibling;
         }
 
+        /// <summary>
+        /// Get the file path and name
+        /// </summary>
+        /// <param name="fileFullName">Full file name</param>
+        /// <param name="filePath">Reference to file path</param>
+        /// <param name="fileName">Reference to file name</param>
         private static void getFilePathAndName(string fileFullName, ref string filePath, ref string fileName)
         {
             if (fileFullName == null)
